@@ -22,7 +22,9 @@
     >
       <template #event="{ event }">
         <div class="px-1 py-0.5 text-xs">
-          <div class="font-medium truncate">{{ event.title || "Запись" }}</div>
+          <div class="font-medium truncate">
+            {{ event.clientId.label || "Запись" }}
+          </div>
           <div class="opacity-70 truncate" v-if="event.service || event.price">
             {{ event.service }}
             <span v-if="event.price">· {{ event.price }}</span>
@@ -37,36 +39,48 @@
     <template #body>
       <UForm :state="state" class="space-y-4" @submit="onSubmit">
         <UFormField label="Клиент" name="clientId">
-          <UInputMenu
-            v-model="state.clientId"
-            :items="clientItems"
-            option-attribute="label"
-            value-attribute="value"
-            placeholder="Выберите клиента"
-          />
+          <div class="flex items-center justify-between gap-2">
+            <UInputMenu
+              class="w-full"
+              v-model="state.clientId"
+              :items="clientItems"
+              option-attribute="label"
+              value-attribute="value"
+              placeholder="Выберите клиента"
+            />
+            <UButton
+              label="+"
+              color="neutral"
+              variant="subtle"
+              @click="addClient"
+            />
+          </div>
         </UFormField>
         <UFormField label="Услуга" name="service">
           <UInputMenu
+            class="w-full"
             v-model="state.service"
-            :items="clientItems"
+            :items="serviceStore.service"
             option-attribute="label"
             value-attribute="value"
-            placeholder="Выберите клиента"
+            create-item
+            placeholder="Выберите услугу"
+            @create="onCreate"
           />
         </UFormField>
 
         <UFormField label="Цена" name="price">
-          <UInput v-model="state.price" type="number" />
+          <UInput v-model="state.price" type="number" class="w-full" />
         </UFormField>
         <UFormField label="Время начала работы" name="start">
-          <UInput v-model="state.start" type="datetime-local" />
+          <UInput v-model="state.start" type="datetime-local" class="w-full" />
         </UFormField>
         <UFormField label="Время окончания работы" name="end">
-          <UInput v-model="state.end" type="datetime-local" />
+          <UInput v-model="state.end" type="datetime-local" class="w-full" />
         </UFormField>
 
         <UFormField label="Примечание" name="note">
-          <UInput v-model="state.note" />
+          <UInput v-model="state.note" class="w-full" />
         </UFormField>
 
         <UButton type="submit">Добавить</UButton>
@@ -119,12 +133,15 @@
 
 <script setup lang="ts">
 import type { FormError, FormErrorEvent, FormSubmitEvent } from "@nuxt/ui";
-
+import { ModalAddClient } from "#components";
+const overlay = useOverlay();
+const modal = overlay.create(ModalAddClient);
 import { VueCal } from "vue-cal";
 import "vue-cal/style";
 
 const clientStore = useClientsStore();
 const appointmentStore = useAppointmentsStore();
+const serviceStore = useServiceStore();
 const editId = ref<string>("");
 
 const open = ref(false);
@@ -156,10 +173,16 @@ const clientItems = computed(() =>
   }))
 );
 
+const addClient = () => modal.open();
+
 const selectedClient = computed(
   () => clientStore.clients.find((c: any) => c._id === state.clientId) || null
 );
 
+const onCreate = async (item) => {
+  await serviceStore.addService(item);
+  state.service = "";
+};
 function createEvent({ event, resolve }) {
   if (typeof resolve === "function") resolve(false);
   state.start = toLocalInput(event.start);
@@ -201,6 +224,7 @@ function editEvent({ event }: { event: any }) {
 onMounted(async () => {
   await clientStore.fetchClients();
   await appointmentStore.fetchEvents();
+  await serviceStore.fetchServices();
 });
 
 async function onSubmit(event: FormSubmitEvent<typeof state>) {
@@ -231,6 +255,7 @@ const deleteEvent = async () => {
     return;
   }
   await appointmentStore.removeEvent(editId.value);
+  toast.add({ title: "Запись успешно удалена", color: "success" });
   openEdit.value = false;
 };
 async function onEditSubmit() {
