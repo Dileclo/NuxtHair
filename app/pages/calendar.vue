@@ -13,7 +13,16 @@
         </UFormField>
 
         <UFormField label="Время начала работы" name="start">
-          <UInput v-model="state.start" type="time" />
+          <FlatPickr class="border rounded-sm h-7"
+            v-model="state.start"
+            :config="{
+              enableTime: true,
+              dateFormat: 'Y-m-d H:i',
+              time_24hr: true,
+              minuteIncrement: 30,
+              disableMobile: true
+            }"
+          />
         </UFormField>
         <UFormField label="Время окончания работы" name="start">
           <UInput v-model="state.start" type="time" />
@@ -39,8 +48,8 @@ const open = ref(false)
 const state = reactive({
   clientId: '',
   start: '',
-  end: '',
-  color: '',
+  end:'',
+  color:'',
   note: ''
 })
 
