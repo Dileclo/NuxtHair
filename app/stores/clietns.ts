@@ -9,8 +9,9 @@ export const useClientsStore = defineStore('clients', () => {
     }
 
     const fetchClients = async () => {
-        const res = await api.get('/api/staff')
+        const res = await api.get('/clients')
+        clients.value = res
     }
 
-    return { clients,addClient }
+    return { clients,addClient,fetchClients }
 })
