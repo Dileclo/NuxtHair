@@ -1,70 +1,47 @@
 // stores/appointments.ts
-import { defineStore } from 'pinia'
+import { defineStore } from "pinia";
 
-export const useAppointmentsStore = defineStore('appointments', () => {
-  const events = ref<any[]>([])
-  const api = useApi()
+export const useAppointmentsStore = defineStore("appointments", () => {
+  const events = ref<any[]>([]);
+  const api = useApi();
+
+  const normalize = (r: any) => {
+    const id = String(r._id ?? r.id); // гарантируем строку
+    const title = String(r.title ?? r.service ?? r.note ?? "Запись");
+    return {
+      ...r,
+      id, // VueCal будет видеть id
+      _id: id, // для PATCH
+      start: new Date(r.start),
+      end: new Date(r.end),
+      title,
+      content: r.content ?? title,
+    };
+  };
 
   async function fetchEvents() {
-    const rows = await api.get('/appointments')
-    events.value = rows
-      .filter((r: any) => r.start && r.end)
-      .map((r: any) => {
-        const title = String(r.title ?? r.clientName ?? r.service ?? r.note ?? 'Запись')
-        return {
-          ...r,
-          start: new Date(r.start),
-          end: new Date(r.end),
-          title,
-          content: r.content ?? title,   // на всякий случай
-        }
-      })
+    const rows = await api.get("/appointments");
+    events.value = rows.filter((r: any) => r.start && r.end).map(normalize);
   }
 
-  async function fetchEventById(id: string) {
-    const res = await api.get(`/appointments/${id}`)
-    return res
+  async function addEvent(payload: any) {
+    const created = await api.post("/appointments", payload);
+    events.value = [...events.value, normalize(created)]; // иммутабельно!
   }
 
-  async function addEvent(payload: {
-    clientId: string
-    start: string // ISO
-    end: string   // ISO
-    note?: string
-    color?: string
-    service?: string
-    price?: number | string
-    title?: string
-  }) {
-    const created = await api.post('/appointments', payload)
-    const title = String(created.title ?? created.clientName ?? created.service ?? created.note ?? 'Запись')
-    events.value.push({
-      ...created,
-      start: new Date(created.start),
-      end: new Date(created.end),
-      title,
-      content: created.content ?? title,
-    })
+  async function updateEvent(id: string, patch: any) {
+    console.log(id);
+    const updated = await api.patch(`/appointments/${id}`, patch);
+    const ev = normalize(updated);
+    // тоже иммутабельно:
+    events.value = events.value.map((e) => (e._id === id ? ev : e));
+    return ev;
   }
 
-  async function updateEvent(id: string, patch: {
-    clientId?: string; start?: string; end?: string; note?: string; color?: string; service?: string; price?: number | string; title?: string;
-  }) {
-    const updated = await api.patch(`/appointments/${id}`, patch)
-    const idx = events.value.findIndex(e => e._id === id)
-    if (idx !== -1) {
-      const title = String(updated.title ?? updated.clientName ?? updated.service ?? updated.note ?? 'Запись')
-      events.value[idx] = {
-        ...events.value[idx],
-        ...updated,
-        start: new Date(updated.start),
-        end: new Date(updated.end),
-        title,
-        content: updated.content ?? title
-      }
-    }
-    return updated
+  async function removeEvent(id: string) {
+    await api.delete(`/appointments/${id}`);
+    events.value = events.value.filter((e) => e._id !== id);
   }
 
-  return { events, fetchEvents, addEvent, fetchEventById, updateEvent }
-})
+  return { events, fetchEvents, addEvent, updateEvent, removeEvent };
+});
