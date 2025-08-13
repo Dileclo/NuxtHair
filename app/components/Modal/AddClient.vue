@@ -38,6 +38,7 @@ const state = reactive({
 async function onSubmit(event: FormSubmitEvent<typeof state>) {
     await clientStore.addClient(event.data)
     toast.add({ title: 'Клент успешно добавлен', color: 'success' })
+    await clientStore.fetchClients()
 }
 
 </script>

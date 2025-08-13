@@ -15,7 +15,8 @@
     "@iconify-json/lucide": "^1.2.62",
     "@iconify-json/simple-icons": "^1.2.47",
     "@nuxt/ui": "^3.3.0",
-    "nuxt": "^4.0.3"
+    "nuxt": "^4.0.3",
+    "vue-cal": "^5.0.1-rc.28"
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.8.0",

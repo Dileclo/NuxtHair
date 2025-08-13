@@ -1,11 +1,12 @@
 import { defineStore } from 'pinia'
 
 export const useClientsStore = defineStore('clients', () => {
-    const clients = ref([])
+    const clients = ref()
     const api = useApi()
 
     const addClient = async (client) => {
         api.post('/clients', client)
+        await fetchClients()
     }
 
     const fetchClients = async () => {
