@@ -21,6 +21,11 @@ export const useAppointmentsStore = defineStore('appointments', () => {
       })
   }
 
+  async function fetchEventById(id: string) {
+    const res = await api.get(`/appointments/${id}`)
+    return res
+  }
+
   async function addEvent(payload: {
     clientId: string
     start: string // ISO
@@ -42,5 +47,24 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     })
   }
 
-  return { events, fetchEvents, addEvent }
+  async function updateEvent(id: string, patch: {
+    clientId?: string; start?: string; end?: string; note?: string; color?: string; service?: string; price?: number | string; title?: string;
+  }) {
+    const updated = await api.patch(`/appointments/${id}`, patch)
+    const idx = events.value.findIndex(e => e._id === id)
+    if (idx !== -1) {
+      const title = String(updated.title ?? updated.clientName ?? updated.service ?? updated.note ?? 'Запись')
+      events.value[idx] = {
+        ...events.value[idx],
+        ...updated,
+        start: new Date(updated.start),
+        end: new Date(updated.end),
+        title,
+        content: updated.content ?? title
+      }
+    }
+    return updated
+  }
+
+  return { events, fetchEvents, addEvent, fetchEventById, updateEvent }
 })
