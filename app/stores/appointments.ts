@@ -38,6 +38,7 @@ export const useAppointmentsStore = defineStore('appointments', () => {
     const updated = await api.patch(`/appointments/${id}`, patch)
     const ev = normalize(updated)
     events.value = events.value.map(e => (String(e._id ?? e.id) === id ? ev : e))
+    await fetchEvents()
     return ev
   }
 

@@ -19,9 +19,6 @@ export default defineEventHandler(async (event) => {
     const res = await db.collection('appointments').findOneAndUpdate(
       { _id }, { $set: { ...patch, updatedAt: new Date() } }, { returnDocument: 'after' }
     )
-    if (!res.value) throw createError({ statusCode: 404, statusMessage: 'Not found' })
-    const v = res.value
-    return { ...v, _id: v._id.toString() }
   }
 
   if (event.method === 'DELETE') {

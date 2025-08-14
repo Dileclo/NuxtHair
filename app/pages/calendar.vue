@@ -144,27 +144,6 @@ const colorOptions = [
   { label: 'Оранжевый', value: 'orange' },
   { label: 'Розовый', value: 'pink' },
 ]
-
-// HEX для отображения
-const colorMap: Record<string, string> = {
-  blue: '#3b82f6',
-  green: '#10b981',
-  orange: '#f59e0b',
-  pink: '#ec4899',
-  // запасной цвет
-  default: '#64748b'
-}
-
-// точка слева
-const dotStyle = (c?: string) => ({
-  backgroundColor: colorMap[c || ''] || colorMap.default
-})
-
-// тонкий бордер слева (симпатично смотрится в календаре)
-const eventWrapperStyle = (c?: string) => ({
-  borderLeft: `4px solid ${colorMap[c || ''] || colorMap.default}`
-})
-
 const addClient = () => modal.open();
 
 const selectedClient = computed(
