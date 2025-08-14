@@ -1,3 +1,4 @@
+import { ObjectId } from 'mongodb'
 import { getDb } from '../../utils/db'
 
 export default defineEventHandler(async (event) => {
@@ -12,5 +13,11 @@ export default defineEventHandler(async (event) => {
     if (method === 'GET') {
         const clients = await db.collection('clients').find().toArray()
         return clients
+    }
+    if (method === 'DELETE') {
+        const id = getRouterParam(event, 'id')
+        if (!id) throw createError({ statusCode: 400, statusMessage: 'id required' })
+        const client = await db.collection('clients').deleteOne({ _id: new ObjectId(id) })
+        return client
     }
 })

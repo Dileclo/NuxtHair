@@ -14,5 +14,10 @@ export const useClientsStore = defineStore('clients', () => {
         clients.value = res
     }
 
-    return { clients,addClient,fetchClients }
+    const removeClient = async (id) => {
+        api.delete(`/clients/${id}`)
+        await fetchClients()
+    }
+
+    return { clients,addClient,fetchClients,removeClient }
 })
