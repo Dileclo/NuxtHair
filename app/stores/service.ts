@@ -1,17 +1,30 @@
+// stores/services.ts
 import { defineStore } from 'pinia'
 
-export const useServiceStore = defineStore('service', () => {
-  const service = ref('')
+type Service = { _id: string; title: string; createdAt?: string }
+
+export const useServicesStore = defineStore('services', () => {
+  const services = ref<Service[]>([])
   const api = useApi()
 
-  const addService = async (service) => {
-    await api.post('/services', service)
-    await fetchServices()
+  async function fetchServices() {
+    services.value = await api.get<Service[]>('/services')
   }
 
-  const fetchServices = async () => {
-    const res = await api.get('/services')
-    service.value = res
+  async function addService(title: string) {
+    const created = await api.post<Service>('/services', { title })
+    services.value = [...services.value, created] // новая ссылка → реактивно
   }
-  return { service, addService,fetchServices }
+
+  async function removeService(id: string) {
+    await api.delete(`/services/${id}`)
+    services.value = services.value.filter(s => s._id !== id)
+  }
+
+  // Для выпадающих списков
+  const serviceItems = computed(() =>
+    services.value.map(s => ({ label: s.title, value: s._id }))
+  )
+
+  return { services, serviceItems, fetchServices, addService, removeService }
 })

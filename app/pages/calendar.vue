@@ -1,72 +1,37 @@
 <template>
   <div>
-    <VueCal
-      class="h-full"
-      sm
-      locale="ru"
-      v-model:events="appointmentStore.events"
-      :today-button="false"
-      :time-from="7 * 60"
-      :time-to="21 * 60"
-      :time-step="30"
-      :views="['day', 'week', 'year']"
-      :snap-to-interval="30"
+    <VueCal class="h-full" sm locale="ru" v-model:events="appointmentStore.events" :today-button="false"
+      :time-from="7 * 60" :time-to="21 * 60" :time-step="30" :views="['day', 'week', 'year']" :snap-to-interval="30"
       :editable-events="{
         create: true,
         resize: false,
         drag: false,
         delete: false,
-      }"
-      @event-click="editEvent"
-      @event-create="createEvent"
-    >
+      }" @event-click="editEvent" @event-create="createEvent">
       <template #event="{ event }">
-        <div class="px-1 py-0.5 text-xs">
-          <div class="font-medium truncate">
+        <div class="w-full">
+          <div class="text-xs ">
             {{ event.clientId.label || "Запись" }}
           </div>
-          <div class="opacity-70 truncate" v-if="event.service || event.price">
-            {{ event.service }}
-            <span v-if="event.price">· {{ event.price }}</span>
-          </div>
+          {{ event.service.label }}
         </div>
       </template>
     </VueCal>
   </div>
-  {{ appointmentStore.events }}
 
   <USlideover v-model:open="open" title="Запись клиента">
     <template #body>
       <UForm :state="state" class="space-y-4" @submit="onSubmit">
         <UFormField label="Клиент" name="clientId">
           <div class="flex items-center justify-between gap-2">
-            <UInputMenu
-              class="w-full"
-              v-model="state.clientId"
-              :items="clientItems"
-              option-attribute="label"
-              value-attribute="value"
-              placeholder="Выберите клиента"
-            />
-            <UButton
-              label="+"
-              color="neutral"
-              variant="subtle"
-              @click="addClient"
-            />
+            <UInputMenu class="w-full" v-model="state.clientId" :items="clientItems" option-attribute="label"
+              value-attribute="value" placeholder="Выберите клиента" />
+            <UButton label="+" color="neutral" variant="subtle" @click="addClient" />
           </div>
         </UFormField>
         <UFormField label="Услуга" name="service">
-          <UInputMenu
-            class="w-full"
-            v-model="state.service"
-            :items="serviceStore.service"
-            option-attribute="label"
-            value-attribute="value"
-            create-item
-            placeholder="Выберите услугу"
-            @create="onCreate"
-          />
+          <UInputMenu class="w-full" v-model="state.service" :items="serviceStore.serviceItems" option-attribute="label"
+            value-attribute="value" create-item placeholder="Выберите услугу" @create="onCreate" />
         </UFormField>
 
         <UFormField label="Цена" name="price">
@@ -77,6 +42,11 @@
         </UFormField>
         <UFormField label="Время окончания работы" name="end">
           <UInput v-model="state.end" type="datetime-local" class="w-full" />
+        </UFormField>
+
+        <UFormField label="Цвет" name="color">
+          <UInputMenu v-model="state.color" :items="colorOptions" option-attribute="label" value-attribute="value"
+            placeholder="Выберите цвет" />
         </UFormField>
 
         <UFormField label="Примечание" name="note">
@@ -91,36 +61,30 @@
     <template #body>
       <UForm :state="state2" class="space-y-4" @submit="onEditSubmit">
         <UFormField label="Клиент" name="clientId">
-          <UInputMenu
-            v-model="state2.clientId"
-            :items="clientItems"
-            option-attribute="label"
-            value-attribute="value"
-            placeholder="Выберите клиента"
-          />
+          <UInputMenu class="w-full" v-model="state2.clientId" :items="clientItems" option-attribute="label"
+            value-attribute="value" placeholder="Выберите клиента" />
         </UFormField>
         <UFormField label="Услуга" name="service">
-          <UInputMenu
-            v-model="state2.service"
-            :items="clientItems"
-            option-attribute="label"
-            value-attribute="value"
-            placeholder="Выберите клиента"
-          />
+          <UInputMenu class="w-full" v-model="state2.service" :items="serviceStore.serviceItems" option-attribute="label"
+            value-attribute="value" placeholder="Выберите клиента" />
         </UFormField>
 
         <UFormField label="Цена" name="price">
-          <UInput v-model="state2.price" type="number" />
+          <UInput class="w-full" v-model="state2.price" type="number" />
         </UFormField>
         <UFormField label="Время начала работы" name="start">
-          <UInput v-model="state2.start" type="datetime-local" />
+          <UInput class="w-full" v-model="state2.start" type="datetime-local" />
         </UFormField>
         <UFormField label="Время окончания работы" name="end">
-          <UInput v-model="state2.end" type="datetime-local" />
+          <UInput class="w-full" v-model="state2.end" type="datetime-local" />
+        </UFormField>
+        <UFormField label="Цвет" name="color">
+          <UInputMenu v-model="state2.color" :items="colorOptions" option-attribute="label" value-attribute="value"
+            placeholder="Выберите цвет" />
         </UFormField>
 
         <UFormField label="Примечание" name="note">
-          <UInput v-model="state2.note" />
+          <UInput class="w-full" v-model="state2.note" />
         </UFormField>
         <div class="flex justify-between">
           <UButton type="submit">Изменить</UButton>
@@ -141,7 +105,7 @@ import "vue-cal/style";
 
 const clientStore = useClientsStore();
 const appointmentStore = useAppointmentsStore();
-const serviceStore = useServiceStore();
+const serviceStore = useServicesStore();
 const editId = ref<string>("");
 
 const open = ref(false);
@@ -172,6 +136,34 @@ const clientItems = computed(() =>
     value: c._id,
   }))
 );
+
+
+const colorOptions = [
+  { label: 'Синий', value: 'blue' },
+  { label: 'Зелёный', value: 'green' },
+  { label: 'Оранжевый', value: 'orange' },
+  { label: 'Розовый', value: 'pink' },
+]
+
+// HEX для отображения
+const colorMap: Record<string, string> = {
+  blue: '#3b82f6',
+  green: '#10b981',
+  orange: '#f59e0b',
+  pink: '#ec4899',
+  // запасной цвет
+  default: '#64748b'
+}
+
+// точка слева
+const dotStyle = (c?: string) => ({
+  backgroundColor: colorMap[c || ''] || colorMap.default
+})
+
+// тонкий бордер слева (симпатично смотрится в календаре)
+const eventWrapperStyle = (c?: string) => ({
+  borderLeft: `4px solid ${colorMap[c || ''] || colorMap.default}`
+})
 
 const addClient = () => modal.open();
 
