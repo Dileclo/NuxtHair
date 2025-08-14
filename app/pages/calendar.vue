@@ -1,8 +1,8 @@
 <template>
   <div>
-    <VueCal view="day" class="h-full" sm locale="ru" v-model:events="appointmentStore.events" :today-button="false"
-      :time-from="7 * 60" :time-to="21 * 60" :time-step="30" :views="['day', 'week', 'month']" :snap-to-interval="30"
-      :editable-events="{
+    <VueCal view="day" class="h-full" sm locale="ru" v-model:events="appointmentStore.events" :time-from="8 * 60"
+      :time-to="21 * 60" :time-step="30" :views="['day', 'week', 'month']" :snap-to-interval="30" events-on-month-view
+      @cell-click="createEvent" :editable-events="{
         create: true,
         resize: false,
         drag: false,
@@ -10,10 +10,12 @@
       }" @event-click="editEvent" @event-create="createEvent">
       <template #event="{ event }">
         <div class="w-full">
+          <div>{{ hhmm(event.start) }} - {{ hhmm(event.end) }}</div>
           <div class="text-xs ">
             {{ event.clientId.label || "Запись" }}
           </div>
           {{ event.service.label }}
+          <div class="mt-1">{{ event.price }} ₽</div>
         </div>
       </template>
     </VueCal>
@@ -61,8 +63,11 @@
     <template #body>
       <UForm :state="state2" class="space-y-4" @submit="onEditSubmit">
         <UFormField label="Клиент" name="clientId">
-          <UInputMenu class="w-full" v-model="state2.clientId" :items="clientItems" option-attribute="label"
-            value-attribute="value" placeholder="Выберите клиента" />
+          <div class="flex items-center justify-between gap-2">
+            <UInputMenu class="w-full" v-model="state2.clientId" :items="clientItems" option-attribute="label"
+              value-attribute="value" placeholder="Выберите клиента" />
+            <UButton label="+" color="neutral" variant="subtle" @click="addClient" />
+          </div>
         </UFormField>
         <UFormField label="Услуга" name="service">
           <UInputMenu class="w-full" v-model="state2.service" :items="serviceStore.serviceItems" option-attribute="label"
@@ -102,7 +107,8 @@ const overlay = useOverlay();
 const modal = overlay.create(ModalAddClient);
 import { VueCal } from "vue-cal";
 import "vue-cal/style";
-
+const hhmm = (d: any) =>
+  d ? new Date(d).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', hour12: false }) : ''
 const clientStore = useClientsStore();
 const appointmentStore = useAppointmentsStore();
 const serviceStore = useServicesStore();
@@ -154,11 +160,19 @@ const onCreate = async (item) => {
   await serviceStore.addService(item);
   state.service = "";
 };
-function createEvent({ event, resolve }) {
+function createEvent({ event, resolve, cell }) {
   if (typeof resolve === "function") resolve(false);
-  state.start = toLocalInput(event.start);
-  state.end = toLocalInput(event.end);
   open.value = true;
+  console.log(event)
+  if (event) {
+    state.start = toLocalInput(event.start);
+    state.end = toLocalInput(event.end);
+  } else {
+    state.start = toLocalInput(cell.start);
+    state.end = toLocalInput(cell.end);
+
+  }
+
 }
 function findEventId(ev: any) {
   const ts = (d: any) =>
@@ -272,16 +286,63 @@ function fromLocalInput(s: string) {
 </script>
 <style>
 /* фон и левый бордер по классу события */
-.vuecal__event.evt-blue   { background: #e8f0ff; border-left: 4px solid #3b82f6; color: black; }
-.vuecal__event.evt-green  { background: #e8f7f1; border-left: 4px solid #10b981; color: black; }
-.vuecal__event.evt-orange { background: #fff5e6; border-left: 4px solid #f59e0b; color: black; }
-.vuecal__event.evt-pink   { background: #feeaf4; border-left: 4px solid #ec4899; color: black; }
+.vuecal__event.evt-blue {
+  background: #e8f0ff;
+  border-left: 4px solid #3b82f6;
+  color: black;
+}
+
+.vuecal__event.evt-green {
+  background: #e8f7f1;
+  border-left: 4px solid #10b981;
+  color: black;
+}
+
+.vuecal__event.evt-orange {
+  background: #fff5e6;
+  border-left: 4px solid #f59e0b;
+  color: black;
+}
+
+.vuecal__event.evt-pink {
+  background: #feeaf4;
+  border-left: 4px solid #ec4899;
+  color: black;
+}
 
 
 .vuecal {
   --vuecal-height: 100%;
   --vuecal-border-radius: 2px;
 }
+
 .vuecal__event.health {
   background-color: #57cea9cc;
-}</style>
+}
+
+.vuecal {
+
+  .vuecal__scrollable--month-view {
+    .vuecal__event {
+      height: 15px;
+      margin-top: 1px;
+    }
+
+    .vuecal__event-details {
+      font-size: 11px;
+      white-space: nowrap;
+      padding: 0;
+    }
+
+    .vuecal__cell--has-events {
+      flex-direction: row-reverse;
+      overflow: hidden;
+      justify-content: flex-start;
+    }
+
+    .vuecal__cell--has-events .vuecal__cell-date {
+      align-self: flex-start;
+    }
+  }
+}
+</style>
