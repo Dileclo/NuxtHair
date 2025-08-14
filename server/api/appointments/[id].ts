@@ -9,16 +9,18 @@ export default defineEventHandler(async (event) => {
   const _id = new ObjectId(id)
 
   if (event.method === 'PATCH') {
+    console.log(_id)
     const body = await readBody(event)
     const patch: any = {}
     if (body.start) patch.start = new Date(body.start)
-    if (body.end)   patch.end   = new Date(body.end)
-    ;['clientId','note','color','service','price','title'].forEach(k => {
-      if (body[k] !== undefined) patch[k] = body[k]
-    })
+    if (body.end) patch.end = new Date(body.end)
+      ;['clientId', 'note', 'color', 'service', 'price', 'title'].forEach(k => {
+        if (body[k] !== undefined) patch[k] = body[k]
+      })
     const res = await db.collection('appointments').findOneAndUpdate(
       { _id }, { $set: { ...patch, updatedAt: new Date() } }, { returnDocument: 'after' }
     )
+    return { ok: true }
   }
 
   if (event.method === 'DELETE') {
