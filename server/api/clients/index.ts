@@ -14,10 +14,5 @@ export default defineEventHandler(async (event) => {
         const clients = await db.collection('clients').find().toArray()
         return clients
     }
-    if (method === 'DELETE') {
-        const id = getRouterParam(event, 'id')
-        if (!id) throw createError({ statusCode: 400, statusMessage: 'id required' })
-        const client = await db.collection('clients').deleteOne({ _id: new ObjectId(id) })
-        return client
-    }
+
 })

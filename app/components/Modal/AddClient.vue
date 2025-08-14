@@ -1,5 +1,5 @@
 <template>
-    <USlideover title="Добавить клиента">
+    <USlideover v-model:open="open" title="Добавить клиента">
         <UButton label="Добавить" color="neutral" variant="subtle" />
 
         <template #body>
@@ -26,7 +26,7 @@
 import type { FormError, FormErrorEvent, FormSubmitEvent } from '@nuxt/ui'
 
 const clientStore = useClientsStore()
-
+const open = ref(false)
 const toast = useToast()
 
 const state = reactive({
@@ -39,6 +39,7 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
     await clientStore.addClient(event.data)
     toast.add({ title: 'Клент успешно добавлен', color: 'success' })
     await clientStore.fetchClients()
+    open.value = false
 }
 
 </script>
