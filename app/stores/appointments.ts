@@ -15,7 +15,8 @@ export const useAppointmentsStore = defineStore('appointments', () => {
       start: new Date(r.start),                   // VueCal требует Date
       end: new Date(r.end),
       title,
-      content: r.content ?? title
+      content: r.content ?? title,
+      class: `evt-${r.color || 'default'}`
     }
   }
 

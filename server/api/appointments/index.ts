@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
       service: body.service ?? null,
       price: body.price ?? null,
       note: body.note ?? '',
-      color: body.color ?? null,
+      class: body.color ?? null,
       title: body.title ?? body.service ?? 'Запись',
       createdAt: new Date()
     }

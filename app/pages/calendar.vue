@@ -1,7 +1,7 @@
 <template>
   <div>
-    <VueCal class="h-full" sm locale="ru" v-model:events="appointmentStore.events" :today-button="false"
-      :time-from="7 * 60" :time-to="21 * 60" :time-step="30" :views="['day', 'week', 'year']" :snap-to-interval="30"
+    <VueCal view="day" class="h-full" sm locale="ru" v-model:events="appointmentStore.events" :today-button="false"
+      :time-from="7 * 60" :time-to="21 * 60" :time-step="30" :views="['day', 'week', 'month']" :snap-to-interval="30"
       :editable-events="{
         create: true,
         resize: false,
@@ -210,7 +210,7 @@ async function onSubmit(event: FormSubmitEvent<typeof state>) {
     start: startISO,
     end: endISO,
     note: state.note,
-    color: state.color,
+    color: state.color.value,
     price: state.price,
     service: state.service,
     title: selectedClient.value?.name,
@@ -239,7 +239,7 @@ async function onEditSubmit() {
     service: state2.service,
     price: state2.price,
     note: state2.note,
-    color: state2.color,
+    color: state2.color.value,
     start: fromLocalInput(state2.start).toISOString(),
     end: fromLocalInput(state2.end).toISOString(),
     title:
@@ -270,3 +270,18 @@ function fromLocalInput(s: string) {
   return new Date(y, m - 1, d, hh, mm);
 }
 </script>
+<style>
+/* фон и левый бордер по классу события */
+.vuecal__event.evt-blue   { background: #e8f0ff; border-left: 4px solid #3b82f6; color: black; }
+.vuecal__event.evt-green  { background: #e8f7f1; border-left: 4px solid #10b981; color: black; }
+.vuecal__event.evt-orange { background: #fff5e6; border-left: 4px solid #f59e0b; color: black; }
+.vuecal__event.evt-pink   { background: #feeaf4; border-left: 4px solid #ec4899; color: black; }
+
+
+.vuecal {
+  --vuecal-height: 100%;
+  --vuecal-border-radius: 2px;
+}
+.vuecal__event.health {
+  background-color: #57cea9cc;
+}</style>
