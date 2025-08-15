@@ -1,5 +1,5 @@
 <template>
-    <div class="flex w-full p-3 justify-between items-center shadow bg-green-200">
+    <div class="flex w-full p-3 justify-between items-center shadow">
         <div class="font-bold">HairSaloon</div>
         <div>
             <USlideover side="top" title="Меню">

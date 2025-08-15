@@ -16,6 +16,15 @@
 
     <UButton type="submit">Изменить</UButton>
   </UForm>
+  <div class="font-bold text-2xl my-2">Статистика</div>
+  <div class="space-y-2">
+    <div>Всего посещений: <UBadge color="success">{{ visitRows.length }}</UBadge>
+    </div>
+    <div>Общая сумма: <UBadge color="success">{{ total }} ₽</UBadge>
+    </div>
+    <div>Последнее посещение <UBadge color="success">{{ lastVisit }}</UBadge>
+    </div>
+  </div>
   <div class="font-bold text-2xl my-2">История посещений</div>
   <!-- ВАЖНО: передаём данные в таблицу -->
   <UTable v-model:sorting="sorting" :columns="columns" :data="visitRows" />
@@ -27,6 +36,17 @@ const appointmentStore = useAppointmentsStore();
 const route = useRoute();
 const toast = useToast();
 const sorting = ref([{ id: "date", desc: true }]);
+const lastVisit = computed(() => {
+  return visitRows.value.length ? visitRows.value[0].date : ""
+})
+const total = computed(() => {
+  const list = Array.isArray(appointmentStore.events)
+    ? appointmentStore.events
+    : [];
+  return list
+    .filter((e: any) => String(e.clientId.value) === String(route.params.id))
+    .reduce((acc: number, e: any) => acc + Number(e.price), 0);
+})
 const state = reactive({
   name: "",
   phone: "",
@@ -44,12 +64,12 @@ const columns = [
 const fmt = (d: any) =>
   d
     ? new Date(d).toLocaleString("ru-RU", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
     : "";
 
 // строки для таблицы: фильтруем события по clientId
